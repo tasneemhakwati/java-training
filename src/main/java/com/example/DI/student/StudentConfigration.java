@@ -15,7 +15,7 @@ public class StudentConfigration {
         return args -> studentRepository.save(new Student(
                 "Mariam",
                 "Mariam@Mariam.com",
-                LocalDate.of(2000, Month.APRIL, 12),
-                23));
+                LocalDate.of(2000, Month.APRIL, 12)));
+
     }
 }

@@ -2,20 +2,53 @@ package com.example.DI.student;
 
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.Month;
+import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class StudentService {
 
+    private final StudentRepository studentRepository;
+
+    public StudentService(StudentRepository studentRepository) {
+        this.studentRepository = studentRepository;
+    }
+
+
     public List<Student> getStudents(){
-        return List.of(
-                new Student(
-                        1L,
-                        "Mariam",
-                        "Mariam@Mariam.com",
-                        LocalDate.of(2000, Month.APRIL, 12),
-                        23));
+        return studentRepository.findAll();
+    }
+
+    public void addNewStudent(Student student) {
+        Optional<Student> studentOptional = studentRepository.findStudentByEmail(student.getEmail());
+        if (studentOptional.isPresent()){
+            throw new IllegalStateException("Email is already taken");
+        }
+        studentRepository.save(student);
+    }
+
+    public void deleteStudent(Long studentId) {
+        boolean exists = studentRepository.existsById(studentId);
+        if (!exists){
+            throw new IllegalStateException("Not exist");
+        }
+        studentRepository.deleteById(studentId);
+    }
+
+    @Transactional
+    public void updateStudent(Long studentId, String name, String email) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(()-> new IllegalStateException("Not exist"));
+        if (name!=null && name.length()>0 && !Objects.equals(student.getName(), name)){
+            student.setName(name);
+        }
+        if (email!=null && email.length()>0 && !Objects.equals(student.getEmail(), email)){
+            if(studentRepository.findStudentByEmail(email).isPresent()){
+                throw new IllegalStateException("email taken");
+            }
+            student.setEmail(email);
+        }
     }
 }
